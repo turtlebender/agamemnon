@@ -2,7 +2,7 @@ import unittest
 from nose.plugins.attrib import attr
 import pycassa
 from pycassa.cassandra.ttypes import NotFoundException
-from graph import DataStore
+from agamemnon import DataStore
 
 class GraphFunctionalTests(unittest.TestCase):
 #This test requires a running cassandra instance at localhost:9160
