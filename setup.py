@@ -10,7 +10,7 @@ requires = ['pycassa', 'thrift05', 'setuptools']
 tests_requires = requires + ['nose', 'mock']
 
 setup(name='agamemnon',
-      version='0.1.1',
+      version='0.1.1.1',
       description='A graph database built on top of cassandra',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
