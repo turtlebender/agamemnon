@@ -1,0 +1,8 @@
+__author__ = 'trhowe'
+
+
+RELATIONSHIP_INDEX = '__relationship__index__'
+OUTBOUND_RELATIONSHIP_CF = 'outbound__%s' % RELATIONSHIP_INDEX
+INBOUND_RELATIONSHIP_CF = 'inbound__%s' % RELATIONSHIP_INDEX
+RELATIONSHIP_KEY_PATTERN = '%s__%s'
+ENDPOINT_NAME_TEMPLATE = '%s__%s'
