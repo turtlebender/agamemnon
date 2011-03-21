@@ -55,6 +55,12 @@ class Relationship(object):
     def target_node(self):
         return self._target_node
 
+    @property
+    def attributes(self):
+        for key in self.new_values:
+                self.old_values[key] = self.new_values[key]
+        return self.old_values
+
     def __getitem__(self, item):
         if item in self.new_values:
             return self.new_values[item]

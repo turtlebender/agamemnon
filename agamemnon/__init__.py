@@ -263,6 +263,22 @@ class DataStore(object):
             b.remove(self.get_cf(node.type), node.key)
 
     def save_node(self, node):
+        """
+        This needs to update the entry in the type table as well as all of the relationships
+        """
+        node_key = ENDPOINT_NAME_TEMPLATE % (node.type, node.key)
+        try:
+            outbound_results = self.get(OUTBOUND_RELATIONSHIP_CF, node_key)
+        except NotFoundException:
+            outbound_results = {}
+        try:
+            inbound_results = self.get(INBOUND_RELATIONSHIP_CF, node_key)
+        except NotFoundException:
+            inbound_results = {}
+        for outbound in outbound_results.values():
+            self.create_relationship(outbound.type, node, outbound.target_node, outbound.key, outbound.attributes)
+        for inbound in inbound_results.values():
+            self.create_relationship(inbound.type, inbound.source_node, node, inbound.key, inbound.attributes)
         self.insert(node.type, node.key, node.attributes)
 
     def get_node(self, type, key):
