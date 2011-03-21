@@ -22,7 +22,6 @@ from graph_constants import *
 
 log = logging.getLogger(__name__)
 
-
 class NoTransactionError(Exception):
     pass
 
@@ -34,6 +33,7 @@ class RelationshipIndexEntry(object):
     @property
     def entry(self):
         return self._entry
+
 
 class DataStore(object):
     def __init__(self, keyspace, pool, system_manager):
@@ -187,8 +187,10 @@ class DataStore(object):
         to_key = ENDPOINT_NAME_TEMPLATE % (to_type, to_key)
 
         with batch.Mutator(self._pool) as b:
-            b.remove(self.get_cf(INBOUND_RELATIONSHIP_CF), to_key, super_column=RELATIONSHIP_KEY_PATTERN% (rel_type, rel_id))
-            b.remove(self.get_cf(OUTBOUND_RELATIONSHIP_CF), from_key, super_column=RELATIONSHIP_KEY_PATTERN % (rel_type, rel_id))
+            b.remove(self.get_cf(INBOUND_RELATIONSHIP_CF), to_key,
+                     super_column=RELATIONSHIP_KEY_PATTERN % (rel_type, rel_id))
+            b.remove(self.get_cf(OUTBOUND_RELATIONSHIP_CF), from_key,
+                     super_column=RELATIONSHIP_KEY_PATTERN % (rel_type, rel_id))
 
     def create_relationship(self, rel_type, source_node, target_node, key, args):
         if key is None:
@@ -250,11 +252,11 @@ class DataStore(object):
             inbound_results = {}
 
         with batch.Mutator(self._pool) as b:
-            for rel in outbound_results.values():
+            for rel in outbound_results:
                 b.remove(self.get_cf(INBOUND_RELATIONSHIP_CF),
                          RELATIONSHIP_KEY_PATTERN % (rel['target__type'], rel['target__key']),
                          super_column='%s__%s' % (rel['rel_type'], rel['rel_key']))
-            for rel in inbound_results.values():
+            for rel in inbound_results:
                 b.remove(self.get_cf(OUTBOUND_RELATIONSHIP_CF),
                          RELATIONSHIP_KEY_PATTERN % (rel['source__type'], rel['source__key']),
                          super_column='%s__%s' % (rel['rel_type'], rel['rel_key']))
@@ -266,19 +268,38 @@ class DataStore(object):
         """
         This needs to update the entry in the type table as well as all of the relationships
         """
-        node_key = ENDPOINT_NAME_TEMPLATE % (node.type, node.key)
+        source_key = ENDPOINT_NAME_TEMPLATE % (node.type, node.key)
+        target_key = ENDPOINT_NAME_TEMPLATE % (node.type, node.key)
+
         try:
-            outbound_results = self.get(OUTBOUND_RELATIONSHIP_CF, node_key)
+            outbound_results = self.get(OUTBOUND_RELATIONSHIP_CF, source_key)
         except NotFoundException:
             outbound_results = {}
         try:
-            inbound_results = self.get(INBOUND_RELATIONSHIP_CF, node_key)
+            inbound_results = self.get(INBOUND_RELATIONSHIP_CF, target_key)
         except NotFoundException:
             inbound_results = {}
-        for outbound in outbound_results:
-            self.create_relationship(outbound.type, node, outbound.target_node, outbound.key, outbound.attributes)
-        for inbound in inbound_results:
-            self.create_relationship(inbound.type, inbound.source_node, node, inbound.key, inbound.attributes)
+        outbound_columns = {}
+        outbound_columns['source__type'] =  node.type.encode('utf-8')
+        outbound_columns['source__key'] = node.key.encode('utf-8')
+        node_attributes = node.attributes
+        for attribute_key in node.attributes.keys():
+            outbound_columns['source__%s' % attribute_key] = node_attributes[attribute_key]
+        for key in outbound_results.keys():
+            target = outbound_results[key]
+            target_key = ENDPOINT_NAME_TEMPLATE %(target['target__type'], target['target__key'])
+            self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, outbound_columns, key)
+            self.insert(INBOUND_RELATIONSHIP_CF, target_key, outbound_columns, key)
+        inbound_columns = {}
+        inbound_columns['target__type'] =  node.type.encode('utf-8')
+        inbound_columns['target__key'] = node.key.encode('utf-8')
+        for attribute_key in node.attributes.keys():
+            inbound_columns['target__%s' % attribute_key] = node_attributes[attribute_key]
+        for key in inbound_results.keys():
+            source = inbound_results[key]
+            source_key = ENDPOINT_NAME_TEMPLATE %(source['source__type'], source['source__key'])
+            self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, inbound_columns, key)
+            self.insert(INBOUND_RELATIONSHIP_CF, target_key, inbound_columns, key)
         self.insert(node.type, node.key, node.attributes)
 
     def get_node(self, type, key):
@@ -300,8 +321,10 @@ class DataStore(object):
             node = self.create_node('reference', name, {'reference': 'reference'}, reference=True)
         return node
 
+
 class NodeNotFoundException(Exception):
     pass
+
 
 def _get_args(args, **kwargs):
     tmp_args = args
@@ -312,6 +335,7 @@ def _get_args(args, **kwargs):
         if kwargs is not None:
             tmp_args = kwargs
     return tmp_args
+
 
 def DFS(node, relationship_type, return_predicate=None):
     visited = set([node.key])
