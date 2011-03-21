@@ -149,7 +149,7 @@ class DataStore(object):
             elif column == 'target__key':
                 target_node_key = value
             elif column.startswith('target__'):
-                target_attributes[column[2:]] = value
+                target_attributes[column[8:]] = value
             else:
                 rel_attributes[column] = value
         return prim.Relationship(rel_key, source_node,
@@ -174,7 +174,7 @@ class DataStore(object):
             elif column == 'source__key':
                 source_node_key = value
             elif column.startswith('source__'):
-                source_attributes[column[2:]] = value
+                source_attributes[column[8:]] = value
             else:
                 rel_attributes[column] = value
         return prim.Relationship(rel_key, prim.Node(self, source_node_type, source_node_key, source_attributes),
@@ -263,10 +263,7 @@ class DataStore(object):
             b.remove(self.get_cf(node.type), node.key)
 
     def save_node(self, node):
-        with batch.Mutator(self._pool) as b:
-            b.insert(node.type, node.key, node.attributes)
-
-            b.send()
+        self.insert(node.type, node.key, node.attributes)
 
     def get_node(self, type, key):
         try:
