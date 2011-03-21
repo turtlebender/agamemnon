@@ -279,9 +279,7 @@ class DataStore(object):
             inbound_results = self.get(INBOUND_RELATIONSHIP_CF, target_key)
         except NotFoundException:
             inbound_results = {}
-        outbound_columns = {}
-        outbound_columns['source__type'] =  node.type.encode('utf-8')
-        outbound_columns['source__key'] = node.key.encode('utf-8')
+        outbound_columns = {'source__type': node.type.encode('utf-8'), 'source__key': node.key.encode('utf-8')}
         node_attributes = node.attributes
         for attribute_key in node.attributes.keys():
             outbound_columns['source__%s' % attribute_key] = node_attributes[attribute_key]
@@ -290,9 +288,7 @@ class DataStore(object):
             target_key = ENDPOINT_NAME_TEMPLATE %(target['target__type'], target['target__key'])
             self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, outbound_columns, key)
             self.insert(INBOUND_RELATIONSHIP_CF, target_key, outbound_columns, key)
-        inbound_columns = {}
-        inbound_columns['target__type'] =  node.type.encode('utf-8')
-        inbound_columns['target__key'] = node.key.encode('utf-8')
+        inbound_columns = {'target__type': node.type.encode('utf-8'), 'target__key': node.key.encode('utf-8')}
         for attribute_key in node.attributes.keys():
             inbound_columns['target__%s' % attribute_key] = node_attributes[attribute_key]
         for key in inbound_results.keys():
