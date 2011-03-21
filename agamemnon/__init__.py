@@ -275,9 +275,9 @@ class DataStore(object):
             inbound_results = self.get(INBOUND_RELATIONSHIP_CF, node_key)
         except NotFoundException:
             inbound_results = {}
-        for outbound in outbound_results.values():
+        for outbound in outbound_results:
             self.create_relationship(outbound.type, node, outbound.target_node, outbound.key, outbound.attributes)
-        for inbound in inbound_results.values():
+        for inbound in inbound_results:
             self.create_relationship(inbound.type, inbound.source_node, node, inbound.key, inbound.attributes)
         self.insert(node.type, node.key, node.attributes)
 
