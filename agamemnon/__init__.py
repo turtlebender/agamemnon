@@ -252,11 +252,13 @@ class DataStore(object):
             inbound_results = {}
 
         with batch.Mutator(self._pool) as b:
-            for rel in outbound_results:
+            for key in outbound_results.keys():
+                rel = outbound_results[key]
                 b.remove(self.get_cf(INBOUND_RELATIONSHIP_CF),
                          RELATIONSHIP_KEY_PATTERN % (rel['target__type'], rel['target__key']),
                          super_column='%s__%s' % (rel['rel_type'], rel['rel_key']))
-            for rel in inbound_results:
+            for key in inbound_results.keys():
+                rel = inbound_results[key]
                 b.remove(self.get_cf(OUTBOUND_RELATIONSHIP_CF),
                          RELATIONSHIP_KEY_PATTERN % (rel['source__type'], rel['source__key']),
                          super_column='%s__%s' % (rel['rel_type'], rel['rel_key']))
