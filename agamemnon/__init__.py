@@ -99,7 +99,7 @@ class DataStore(object):
         else:
             column_family.insert(key, {super_key: args})
 
-    def get_outgoing_relationships(self, source_node, rel_type):
+    def get_outgoing_relationships(self, source_node, rel_type, count=100):
         source_key = RELATIONSHIP_KEY_PATTERN % (source_node.type, source_node.key)
         cf = self.get_cf(OUTBOUND_RELATIONSHIP_CF)
         #Ok, this is weird.  So in order to get a column slice, you need to provide a start that is <= your first column
@@ -109,14 +109,14 @@ class DataStore(object):
         #probably need a different delimiter.
         #TODO: fix delimiter
         try:
-            super_columns = cf.get(source_key, column_start='%s__' % rel_type, column_finish='%s_`' % rel_type)
+            super_columns = cf.get(source_key, column_start='%s__' % rel_type, column_finish='%s_`' % rel_type, column_count=count)
         except NotFoundException:
             super_columns = {}
         return [self.get_outgoing_relationship(rel_type, source_node, super_column) for super_column in
                 super_columns.items()]
 
 
-    def get_incoming_relationships(self, target_node, rel_type):
+    def get_incoming_relationships(self, target_node, rel_type, count=100):
         target_key = RELATIONSHIP_KEY_PATTERN % (target_node.type, target_node.key)
         cf = self.get_cf(INBOUND_RELATIONSHIP_CF)
         #Ok, this is weird.  So in order to get a column slice, you need to provide a start that is <= your first column
@@ -126,7 +126,7 @@ class DataStore(object):
         #probably need a different delimiter.
         #TODO: fix delimiter
         try:
-            super_columns = cf.get(target_key, column_start='%s__' % rel_type, column_finish='%s_`' % rel_type)
+            super_columns = cf.get(target_key, column_start='%s__' % rel_type, column_finish='%s_`' % rel_type, column_count=count)
         except NotFoundException:
             super_columns = {}
         return [self.get_incoming_relationship(rel_type, target_node, super_column) for super_column in
