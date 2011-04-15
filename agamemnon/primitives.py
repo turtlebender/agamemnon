@@ -136,6 +136,20 @@ class RelationshipFactory(object):
         except NotFoundException:
             return []
 
+    def get_outgoing(self, count):
+        try:
+            rels = self._data_store.get_outgoing_relationships(self._parent_node, self._rel_type, count=count)
+        except NotFoundException:
+            rels = []
+        return RelationshipList(rels)
+
+    def get_incoming(self, count):
+        try:
+            rels = self._data_store.get_incoming_relationships(self._parent_node, self._rel_type, count=count)
+        except NotFoundException:
+            rels = []
+        return RelationshipList(rels)
+
     
     @property
     def outgoing(self):
