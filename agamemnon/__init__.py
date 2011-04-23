@@ -288,16 +288,19 @@ class DataStore(object):
         for key in outbound_results.keys():
             target = outbound_results[key]
             target_key = ENDPOINT_NAME_TEMPLATE %(target['target__type'], target['target__key'])
-            self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, outbound_columns, key)
-            self.insert(INBOUND_RELATIONSHIP_CF, target_key, outbound_columns, key)
+            target.update(outbound_columns)
+            self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, target, key)
+            self.insert(INBOUND_RELATIONSHIP_CF, target_key, target, key)
         inbound_columns = {'target__type': node.type.encode('utf-8'), 'target__key': node.key.encode('utf-8')}
         for attribute_key in node.attributes.keys():
             inbound_columns['target__%s' % attribute_key] = node_attributes[attribute_key]
         for key in inbound_results.keys():
             source = inbound_results[key]
             source_key = ENDPOINT_NAME_TEMPLATE %(source['source__type'], source['source__key'])
-            self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, inbound_columns, key)
-            self.insert(INBOUND_RELATIONSHIP_CF, target_key, inbound_columns, key)
+            source.update(inbound_columns)
+            source.update(inbound_columns)
+            self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, source, key)
+            self.insert(INBOUND_RELATIONSHIP_CF, target_key, source, key)
         self.insert(node.type, node.key, node.attributes)
 
     def get_node(self, type, key):
