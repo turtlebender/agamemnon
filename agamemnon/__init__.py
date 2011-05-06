@@ -297,7 +297,7 @@ class DataStore(object):
         for key in inbound_results.keys():
             source = inbound_results[key]
             source_key = ENDPOINT_NAME_TEMPLATE %(source['source__type'], source['source__key'])
-            source.update(inbound_columns)
+            target_key = ENDPOINT_NAME_TEMPLATE % (node.type, node.key)
             source.update(inbound_columns)
             self.insert(OUTBOUND_RELATIONSHIP_CF, source_key, source, key)
             self.insert(INBOUND_RELATIONSHIP_CF, target_key, source, key)
@@ -355,3 +355,4 @@ def DFS(node, relationship_type, return_predicate=None):
             if hasattr(child, relationship_type):
                 visited.add(child.key)
                 S.extend([relationship for relationship in getattr(child, relationship_type)])
+
