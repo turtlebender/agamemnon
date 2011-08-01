@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime
 import logging
+import uuid
 import pycassa.batch as batch
 from pycassa.cassandra.ttypes import NotFoundException
 import pycassa.system_manager as system_manager
@@ -192,21 +192,16 @@ class DataStore(object):
             b.remove(self.get_cf(OUTBOUND_RELATIONSHIP_CF), from_key,
                      super_column=RELATIONSHIP_KEY_PATTERN % (rel_type, rel_id))
 
-    def create_relationship(self, rel_type, source_node, target_node, key, args):
+    def create_relationship(self, rel_type, source_node, target_node, key=None, args=dict()):
         if key is None:
-            rel_key = RELATIONSHIP_KEY_PATTERN % (rel_type, datetime.now())
-        else:
-            rel_key = RELATIONSHIP_KEY_PATTERN % (rel_type, key)
+            key = str(uuid.uuid4())
             #node relationship types
+        rel_key = RELATIONSHIP_KEY_PATTERN % (rel_type, key)
         with batch.Mutator(self._pool) as b:
-            #relationship attributes
-            columns = {}
-            columns.update(args)
-
             #outbound_cf
             columns = {'rel_type': rel_type, 'rel_key': key}
             #add relationship attributes
-            columns.update(columns)
+            columns.update(args)
             #add target attributes
             columns['target__type'] = target_node.type.encode('ascii')
             columns['target__key'] = target_node.key.encode('ascii')
