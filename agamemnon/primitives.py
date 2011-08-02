@@ -136,6 +136,12 @@ class RelationshipFactory(object):
         except NotFoundException:
             return []
 
+    def __contains__(self, item):
+        return len(self.relationships_with(item)) > 0
+
+    def relationships_with(self, node_key):
+        return self._data_store.has_relationship(self._parent_node, node_key, self._rel_type)
+
     def get_outgoing(self, count):
         try:
             rels = self._data_store.get_outgoing_relationships(self._parent_node, self._rel_type, count=count)

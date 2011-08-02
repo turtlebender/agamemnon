@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pycassa
 
 __author__ = 'trhowe'
 
@@ -20,3 +21,6 @@ OUTBOUND_RELATIONSHIP_CF = 'outbound__%s' % RELATIONSHIP_INDEX
 INBOUND_RELATIONSHIP_CF = 'inbound__%s' % RELATIONSHIP_INDEX
 RELATIONSHIP_KEY_PATTERN = '%s__%s'
 ENDPOINT_NAME_TEMPLATE = '%s__%s'
+ASCII = pycassa.ASCII_TYPE
+BYTES = pycassa.BYTES_TYPE
+TIME_UUID = pycassa.TIME_UUID_TYPE
